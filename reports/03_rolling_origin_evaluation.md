@@ -62,6 +62,25 @@ The experiment uses a 10% capacity scenario with the promised-lead-time model an
 
 The budget policy cut total alerts by 75.86% and increased precision by 2.64 percentage points, while recall fell by 40.63 points. It stayed within capacity in every month. In January and June, fewer than 10% of orders met the minimum score. In May, 11.36% met the score floor, but their arrival order limited use of capacity as it accrued. June was the only month in which the budget policy alerted on more orders than the F1 policy, raising recall from 19.72% to 28.17% while precision fell from 13.73% to 7.94%.
 
+## Promised delivery date provenance
+
+Olist's public dataset card describes the estimated delivery date as a trigger for the post-purchase satisfaction survey. The accessible documentation does not establish whether the exported field preserves the original checkout promise or a later revision. The local orders CSV contains 99,441 rows, one per order ID, with no missing estimated dates or estimates before the purchase day. These checks establish consistency within the snapshot. The CSV contains no promise version history, so checkout-time availability remains unverified. A checkout or order-created event with the original promise, or an explicit confirmation from the data owner, would resolve the question. [Olist dataset card](https://www.kaggle.com/olistbr/brazilian-ecommerce/home/)
+
+## Fixed daily review capacity
+
+The same out-of-sample scores were used to simulate 10, 20 and 30 reviews per calendar day. The immediate policy issues alerts in purchase order, using a score floor fixed from the preceding calibration cohort and stopping when the daily cap is reached. The daily queue ranks purchases at the next midnight and fills up to the cap with orders still undelivered at that time. It assumes delivery status is observable by the review cutoff. Both policies discard unused capacity at the end of the day.
+
+| Reviews per day | Policy | Reviews | Late orders found | False alerts | Precision | Recall | Mean wait |
+|---:|---|---:|---:|---:|---:|---:|---:|
+| 10 | Immediate | 1,847 | 292 | 1,555 | 15.81% | 7.16% | 0 h |
+| 10 | Daily queue | 2,410 | 418 | 1,992 | 17.34% | 10.25% | 8.17 h |
+| 20 | Immediate | 3,788 | 517 | 3,271 | 13.65% | 12.68% | 0 h |
+| 20 | Daily queue | 4,811 | 725 | 4,086 | 15.07% | 17.78% | 8.21 h |
+| 30 | Immediate | 5,664 | 703 | 4,961 | 12.41% | 17.24% | 0 h |
+| 30 | Daily queue | 7,211 | 965 | 6,246 | 13.38% | 23.66% | 8.16 h |
+
+At 20 reviews per day, the queue found 208 more late orders and required 1,023 more reviews, including 815 additional false alerts. Queue precision varied from 4.50% in June to 34.84% in March. It found more late orders in all eight months at that cap. The comparison measures the combined effect of ranking at the cutoff and filling more slots because the queue has no minimum score. It does not isolate the effect of ranking at equal realized review volume. The simulations measure detection, and the dataset does not show whether an intervention after review would prevent a delay.
+
 ## Scope
 
-The eight test cohorts contain distinct orders, and successive training histories overlap. The evaluation is retrospective because the feature and model were chosen using earlier analyses of this dataset. August ends on the 29th, and the source cohort contains only delivered orders with valid dates. The workload figures therefore use the historical delivered-order cohort as their denominator. Using promised lead time in production requires confirming that the timestamp reflects the promise available at checkout.
+The eight test cohorts contain distinct orders, and successive training histories overlap. The evaluation is retrospective because the feature and model were chosen using earlier analyses of this dataset. August ends on the 29th, and the source cohort contains only delivered orders with valid dates. The workload figures therefore use the historical delivered-order cohort as their denominator. Actual review capacity, review cadence, and the time available for an intervention remain to be established.
